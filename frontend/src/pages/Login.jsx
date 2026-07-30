@@ -18,23 +18,26 @@ const Login = () => {
       if (res.data.success) {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('username', res.data.user);
-        navigate('/');
+        localStorage.setItem('role', res.data.role);
+        localStorage.setItem('name', res.data.name || res.data.user);
+        localStorage.setItem('student_id', res.data.student_id || null);
+        navigate('/app');
       }
     } catch (err) {
-      setError('Invalid credentials. Use admin / admin123');
+      setError('Invalid credentials. Admin: admin/admin123, Student: student1/student123');
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
+    <div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)'}}>
+      <div className="card" style={{width: 400, padding: '2.5rem', borderTop: '4px solid var(--accent-primary)'}}>
         <div style={{textAlign: 'center', marginBottom: '2rem'}}>
-          <Home color="#10b981" size={48} style={{margin: '0 auto', marginBottom: '1rem'}} />
-          <h2>Welcome to HostelSync</h2>
-          <p style={{color: '#64748b'}}>Sign in to continue</p>
+          <Home color="var(--accent-primary)" size={48} style={{margin: '0 auto', marginBottom: '1rem'}} />
+          <h2 style={{color: 'var(--text-primary)'}}>HostelSync ERP</h2>
+          <p style={{color: 'var(--text-secondary)'}}>Sign in to continue</p>
         </div>
         
-        {error && <div style={{background: '#fee2e2', color: '#ef4444', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem'}}>{error}</div>}
+        {error && <div style={{background: 'var(--accent-light)', color: 'var(--accent-primary)', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.9rem'}}>{error}</div>}
         
         <form onSubmit={handleLogin}>
           <div className="form-group">
@@ -43,7 +46,7 @@ const Login = () => {
               type="text" 
               value={username} 
               onChange={e => setUsername(e.target.value)} 
-              placeholder="Enter username (admin)" 
+              placeholder="admin or student1" 
               required 
             />
           </div>
@@ -53,11 +56,11 @@ const Login = () => {
               type="password" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 
-              placeholder="Enter password (admin123)" 
+              placeholder="admin123 or student123" 
               required 
             />
           </div>
-          <button type="submit" className="btn-primary" style={{marginTop: '1rem'}}>Login</button>
+          <button type="submit" className="btn-primary" style={{marginTop: '1rem', width: '100%'}}>Login</button>
         </form>
       </div>
     </div>
