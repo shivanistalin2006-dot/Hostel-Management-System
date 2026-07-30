@@ -5,6 +5,7 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import StudentDashboard from './pages/StudentDashboard';
+import WardenDashboard from './pages/WardenDashboard';
 import Rooms from './pages/Rooms';
 import Students from './pages/Students';
 import Complaints from './pages/Complaints';
@@ -28,6 +29,7 @@ const RoleBasedHome = () => {
   const role = localStorage.getItem('role');
   if (role === 'admin') return <AdminDashboard />;
   if (role === 'student') return <StudentDashboard />;
+  if (role === 'warden') return <WardenDashboard />;
   return <Navigate to="/login" />;
 };
 

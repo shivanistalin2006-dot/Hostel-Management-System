@@ -22,7 +22,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT UNIQUE NOT NULL,
           password TEXT NOT NULL,
-          role TEXT NOT NULL DEFAULT 'student' -- 'admin' or 'student'
+          role TEXT NOT NULL DEFAULT 'student' -- 'admin', 'student', or 'warden'
         )
       `);
 
@@ -43,7 +43,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
           room_number TEXT UNIQUE NOT NULL,
           floor INTEGER DEFAULT 1,
           capacity INTEGER DEFAULT 2,
-          is_vacant BOOLEAN DEFAULT 1,
+          status TEXT DEFAULT 'Vacant', -- 'Vacant', 'Occupied', 'Maintenance'
           FOREIGN KEY (hostel_id) REFERENCES hostels(id)
         )
       `);
@@ -63,6 +63,31 @@ const db = new sqlite3.Database(dbPath, (err) => {
           FOREIGN KEY (user_id) REFERENCES users(id),
           FOREIGN KEY (room_id) REFERENCES rooms(id),
           FOREIGN KEY (hostel_id) REFERENCES hostels(id)
+        )
+      `);
+
+      // Create Wardens table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS wardens (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER UNIQUE,
+          name TEXT NOT NULL,
+          contact TEXT,
+          hostel_id INTEGER,
+          FOREIGN KEY (user_id) REFERENCES users(id),
+          FOREIGN KEY (hostel_id) REFERENCES hostels(id)
+        )
+      `);
+
+      // Attendance Table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS attendance (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date DATE NOT NULL,
+          student_id INTEGER NOT NULL,
+          status TEXT NOT NULL, -- 'Present' or 'Absent'
+          FOREIGN KEY (student_id) REFERENCES students(id),
+          UNIQUE(date, student_id)
         )
       `);
 
@@ -134,23 +159,36 @@ const db = new sqlite3.Database(dbPath, (err) => {
         if (!err && row.count === 0) {
           // Add Admin
           db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['admin', 'admin123', 'admin']);
-          // Add a default student for testing
-          db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['student1', 'student123', 'student'], function(err) {
+          
+          // Add default Warden
+          db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['warden1', 'warden123', 'warden'], function(err) {
             if (!err) {
-              const studentUserId = this.lastID;
-              db.run('INSERT INTO hostels (name, type) VALUES (?, ?)', ['Boys Hostel A', 'Boys'], function(err) {
+              const wardenUserId = this.lastID;
+              // Add a default student for testing
+              db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['student1', 'student123', 'student'], function(err) {
                 if (!err) {
-                  const hostelId = this.lastID;
-                  db.run('INSERT INTO rooms (hostel_id, room_number, floor, capacity) VALUES (?, ?, ?, ?)', [hostelId, '101', 1, 2], function(err) {
+                  const studentUserId = this.lastID;
+                  db.run('INSERT INTO hostels (name, type) VALUES (?, ?)', ['Boys Hostel A', 'Boys'], function(err) {
                     if (!err) {
-                      db.run(`INSERT INTO students (user_id, name, register_no, parent_contact, hostel_id, room_id) 
-                              VALUES (?, ?, ?, ?, ?, ?)`, 
-                              [studentUserId, 'Test Student', 'REG001', '1234567890', hostelId, this.lastID]);
+                      const hostelId = this.lastID;
+                      
+                      // Assign Warden to Hostel
+                      db.run('INSERT INTO wardens (user_id, name, contact, hostel_id) VALUES (?, ?, ?, ?)', [wardenUserId, 'Mr. Warden', '9998887776', hostelId]);
+                      
+                      db.run('INSERT INTO rooms (hostel_id, room_number, floor, capacity, status) VALUES (?, ?, ?, ?, ?)', [hostelId, '101', 1, 2, 'Occupied'], function(err) {
+                        if (!err) {
+                          db.run(`INSERT INTO students (user_id, name, register_no, contact, parent_contact, hostel_id, room_id) 
+                                  VALUES (?, ?, ?, ?, ?, ?, ?)`, 
+                                  [studentUserId, 'Test Student', 'REG001', '1231231234', '1234567890', hostelId, this.lastID]);
+                        }
+                      });
+                      db.run('INSERT INTO rooms (hostel_id, room_number, floor, capacity, status) VALUES (?, ?, ?, ?, ?)', [hostelId, '102', 1, 2, 'Vacant']);
+                      db.run('INSERT INTO rooms (hostel_id, room_number, floor, capacity, status) VALUES (?, ?, ?, ?, ?)', [hostelId, '103', 1, 2, 'Maintenance']);
                     }
                   });
+                  db.run('INSERT INTO hostels (name, type) VALUES (?, ?)', ['Girls Hostel A', 'Girls']);
                 }
               });
-              db.run('INSERT INTO hostels (name, type) VALUES (?, ?)', ['Girls Hostel A', 'Girls']);
             }
           });
         }

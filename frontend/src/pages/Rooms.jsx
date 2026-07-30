@@ -10,7 +10,8 @@ const Rooms = () => {
   const [roomNumber, setRoomNumber] = useState('');
   const [floor, setFloor] = useState(1);
   const [capacity, setCapacity] = useState(2);
-  const [isVacant, setIsVacant] = useState(true);
+  const [status, setStatus] = useState('Vacant');
+  const role = localStorage.getItem('role');
 
   const fetchData = async () => {
     try {
@@ -73,9 +74,13 @@ const Rooms = () => {
                 <option value={4}>4 Persons</option>
               </select>
             </div>
-            <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-              <input type="checkbox" id="isVacant" checked={isVacant} onChange={e => setIsVacant(e.target.checked)} style={{width: 'auto'}} />
-              <label htmlFor="isVacant" style={{marginBottom: 0}}>Mark as Vacant initially</label>
+            <div className="form-group">
+              <label>Initial Status</label>
+              <select value={status} onChange={e => setStatus(e.target.value)}>
+                <option value="Vacant">Vacant</option>
+                <option value="Occupied">Occupied</option>
+                <option value="Maintenance">Maintenance</option>
+              </select>
             </div>
             <button type="submit" className="btn-primary" style={{width: '100%'}}>Create Room</button>
           </form>
@@ -102,9 +107,28 @@ const Rooms = () => {
                     <td>{r.floor}</td>
                     <td>{r.capacity}</td>
                     <td>
-                      <span className={`badge ${r.is_vacant ? 'approved' : 'pending'}`}>
-                        {r.is_vacant ? 'Vacant' : 'Occupied'}
-                      </span>
+                      {role === 'admin' ? (
+                        <select 
+                          value={r.status} 
+                          onChange={async (e) => {
+                            try {
+                              await axios.put(`${API_URL}/rooms/${r.id}/status`, { status: e.target.value });
+                              fetchData();
+                            } catch (err) {
+                              alert('Failed to update status');
+                            }
+                          }}
+                          style={{width: 'auto', padding: '0.25rem', fontSize: '0.85rem', borderRadius: '4px'}}
+                        >
+                          <option value="Vacant">Vacant</option>
+                          <option value="Occupied">Occupied</option>
+                          <option value="Maintenance">Maintenance</option>
+                        </select>
+                      ) : (
+                        <span className={`badge ${r.status === 'Vacant' ? 'approved' : r.status === 'Maintenance' ? 'rejected' : 'pending'}`}>
+                          {r.status}
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}

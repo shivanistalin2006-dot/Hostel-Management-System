@@ -21,6 +21,8 @@ const Login = () => {
         localStorage.setItem('role', res.data.role);
         localStorage.setItem('name', res.data.name || res.data.user);
         localStorage.setItem('student_id', res.data.student_id || null);
+        localStorage.setItem('warden_id', res.data.warden_id || null);
+        localStorage.setItem('hostel_id', res.data.hostel_id || null);
         navigate('/app');
       }
     } catch (err) {

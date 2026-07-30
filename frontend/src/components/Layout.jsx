@@ -43,7 +43,7 @@ const Layout = () => {
             <Home size={20} /> Dashboard
           </NavLink>
           
-          {role === 'admin' && (
+          {(role === 'admin' || role === 'warden') && (
             <>
               <NavLink to="/app/rooms" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
                 <Grid size={20} /> Rooms

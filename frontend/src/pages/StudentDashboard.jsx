@@ -7,11 +7,16 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const StudentDashboard = () => {
   const [menu, setMenu] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
+  const [attendance, setAttendance] = useState([]);
+  const studentId = localStorage.getItem('student_id');
 
   useEffect(() => {
     axios.get(`${API_URL}/menus/today`).then(res => setMenu(res.data)).catch(console.error);
     axios.get(`${API_URL}/announcements`).then(res => setAnnouncements(res.data)).catch(console.error);
-  }, []);
+    if (studentId) {
+      axios.get(`${API_URL}/attendance?student_id=${studentId}`).then(res => setAttendance(res.data)).catch(console.error);
+    }
+  }, [studentId]);
 
   return (
     <>
@@ -57,6 +62,23 @@ const StudentDashboard = () => {
                 <div style={{fontWeight: 600, color: 'var(--text-primary)'}}>{a.title}</div>
                 <div style={{fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem'}}>{new Date(a.created_at).toLocaleString()}</div>
                 <div style={{fontSize: '0.9rem', color: 'var(--text-primary)'}}>{a.content}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card">
+          <h3 style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)'}}>My Attendance</h3>
+          <div style={{marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
+            {attendance.length === 0 ? <p style={{color: 'var(--text-secondary)'}}>No attendance records yet.</p> : attendance.slice(0, 5).map(a => (
+              <div key={a.id} style={{display: 'flex', justifyContent: 'space-between', padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-main)'}}>
+                <div style={{fontWeight: 600, color: 'var(--text-primary)'}}>{a.date}</div>
+                <div style={{
+                  color: a.status === 'Present' ? 'var(--success)' : 'var(--danger)',
+                  fontWeight: 600
+                }}>
+                  {a.status}
+                </div>
               </div>
             ))}
           </div>

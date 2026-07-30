@@ -40,6 +40,19 @@ app.post('/api/login', (req, res) => {
             name: student ? student.name : user.username
           });
         });
+      } else if (user.role === 'warden') {
+        db.get('SELECT id as warden_id, name, hostel_id FROM wardens WHERE user_id = ?', [user.id], (err, warden) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({
+            success: true,
+            token: 'dummy-token-warden',
+            user: user.username,
+            role: user.role,
+            warden_id: warden ? warden.warden_id : null,
+            hostel_id: warden ? warden.hostel_id : null,
+            name: warden ? warden.name : user.username
+          });
+        });
       } else {
         res.json({ success: true, token: 'dummy-token-admin', user: user.username, role: user.role, name: 'Admin' });
       }
@@ -54,8 +67,9 @@ app.get('/api/dashboard/stats', (req, res) => {
   db.get(`
     SELECT 
       COUNT(*) as total_rooms,
-      SUM(CASE WHEN is_vacant = 0 THEN 1 ELSE 0 END) as occupied_rooms,
-      SUM(CASE WHEN is_vacant = 1 THEN 1 ELSE 0 END) as vacant_rooms
+      SUM(CASE WHEN status = 'Occupied' THEN 1 ELSE 0 END) as occupied_rooms,
+      SUM(CASE WHEN status = 'Vacant' THEN 1 ELSE 0 END) as vacant_rooms,
+      SUM(CASE WHEN status = 'Maintenance' THEN 1 ELSE 0 END) as maintenance_rooms
     FROM rooms
   `, (err, roomStats) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -119,6 +133,23 @@ app.get('/api/students/:id', (req, res) => {
   });
 });
 
+app.put('/api/students/:id/room', (req, res) => {
+  const { room_id, hostel_id } = req.body;
+  db.run('UPDATE students SET room_id = ?, hostel_id = ? WHERE id = ?', [room_id, hostel_id, req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    // Update room status to Occupied
+    db.run('UPDATE rooms SET status = "Occupied" WHERE id = ?', [room_id]);
+    res.json({ success: true });
+  });
+});
+
+app.delete('/api/students/:id', (req, res) => {
+  db.run('DELETE FROM students WHERE id = ?', [req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
 app.post('/api/students/:id/upload-pic', upload.single('profilePic'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   const picUrl = `/uploads/${req.file.filename}`;
@@ -165,6 +196,41 @@ app.get('/api/rooms', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
+});
+
+app.put('/api/rooms/:id/status', (req, res) => {
+  const { status } = req.body;
+  db.run('UPDATE rooms SET status = ? WHERE id = ?', [status, req.params.id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// --- Attendance ---
+app.get('/api/attendance', (req, res) => {
+  const { date, student_id } = req.query;
+  if (student_id) {
+    db.all('SELECT * FROM attendance WHERE student_id = ? ORDER BY date DESC', [student_id], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  } else {
+    const d = date || new Date().toISOString().split('T')[0];
+    db.all('SELECT a.*, s.name as student_name FROM attendance a JOIN students s ON a.student_id = s.id WHERE a.date = ?', [d], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(rows);
+    });
+  }
+});
+
+app.post('/api/attendance', (req, res) => {
+  const { date, records } = req.body; // records: [{student_id, status}]
+  const stmt = db.prepare('INSERT OR REPLACE INTO attendance (date, student_id, status) VALUES (?, ?, ?)');
+  records.forEach(r => {
+    stmt.run([date, r.student_id, r.status]);
+  });
+  stmt.finalize();
+  res.json({ success: true });
 });
 
 // --- Menus ---

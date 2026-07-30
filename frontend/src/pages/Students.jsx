@@ -14,11 +14,16 @@ const Students = () => {
     hostel_id: '',
     room_id: ''
   });
+  const [rooms, setRooms] = useState([]);
+  const role = localStorage.getItem('role');
   
   const fetchData = async () => {
-    try {
       const res = await axios.get(`${API_URL}/students`);
       setStudents(res.data);
+      if (role === 'admin') {
+        const rRes = await axios.get(`${API_URL}/rooms`);
+        setRooms(rRes.data);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -41,6 +46,26 @@ const Students = () => {
     } catch (err) {
       alert('Failed to add student');
       console.error(err);
+    }
+  const handleAssignRoom = async (studentId, roomId) => {
+    if (!roomId) return;
+    const room = rooms.find(r => r.id === parseInt(roomId));
+    try {
+      await axios.put(`${API_URL}/students/${studentId}/room`, { room_id: room.id, hostel_id: room.hostel_id });
+      fetchData();
+    } catch (err) {
+      alert('Failed to assign room');
+    }
+  };
+
+  const handleRemoveStudent = async (studentId) => {
+    if (window.confirm('Are you sure you want to remove this student?')) {
+      try {
+        await axios.delete(`${API_URL}/students/${studentId}`);
+        fetchData();
+      } catch (err) {
+        alert('Failed to remove student');
+      }
     }
   };
 
@@ -106,6 +131,7 @@ const Students = () => {
                 <th>Name</th>
                 <th>Parent Contact</th>
                 <th>Hostel & Room</th>
+                {role === 'admin' && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -126,6 +152,24 @@ const Students = () => {
                   <td>
                     {s.hostel_name ? `${s.hostel_name} - Rm ${s.room_number}` : <span style={{color: 'var(--text-secondary)'}}>Unassigned</span>}
                   </td>
+                  {role === 'admin' && (
+                    <td>
+                      <div style={{display: 'flex', gap: '0.5rem'}}>
+                        <select 
+                          onChange={(e) => handleAssignRoom(s.id, e.target.value)} 
+                          style={{width: 'auto', padding: '0.25rem', fontSize: '0.85rem'}}
+                        >
+                          <option value="">Assign Room</option>
+                          {rooms.filter(r => r.status !== 'Maintenance').map(r => (
+                            <option key={r.id} value={r.id}>{r.hostel_name} - Rm {r.room_number}</option>
+                          ))}
+                        </select>
+                        <button onClick={() => handleRemoveStudent(s.id)} style={{background: 'var(--danger)', color: 'white', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer'}}>
+                          Remove
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
