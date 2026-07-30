@@ -39,33 +39,33 @@ const Layout = () => {
           <Home color="var(--accent-primary)" /> HostelSync
         </div>
         <nav className="sidebar-nav">
-          <NavLink to="/" end className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+          <NavLink to="/app" end className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <Home size={20} /> Dashboard
           </NavLink>
           
           {role === 'admin' && (
             <>
-              <NavLink to="/rooms" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+              <NavLink to="/app/rooms" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
                 <Grid size={20} /> Rooms
               </NavLink>
-              <NavLink to="/students" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+              <NavLink to="/app/students" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
                 <Users size={20} /> Students
               </NavLink>
-              <NavLink to="/menus" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+              <NavLink to="/app/menus" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
                 <Coffee size={20} /> Food Menus
               </NavLink>
             </>
           )}
 
-          <NavLink to="/complaints" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+          <NavLink to="/app/complaints" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <AlertTriangle size={20} /> Complaints
           </NavLink>
-          <NavLink to="/leaves" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+          <NavLink to="/app/leaves" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <Calendar size={20} /> Leaves / OD
           </NavLink>
 
           {role === 'student' && (
-            <NavLink to="/profile" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+            <NavLink to="/app/profile" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
               <User size={20} /> My Profile
             </NavLink>
           )}
