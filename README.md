@@ -1,28 +1,58 @@
-# Hostel Management System
+# HostelSync System
 
-This is the solution for the SIH 2026 Internal Practical Assessment: Hostel Room Allocation and Maintenance Complaint Register.
+This is a fully-fledged, multi-page web application for Hostel Room Allocation and Maintenance Complaint Register.
 
-## Setup and Running the Application
+## 🚀 How to Deploy to the Internet (For Free)
+
+To share this project with friends or evaluators via a public link, you can deploy it for free using **Render.com**.
+
+### Step 1: Push your code to GitHub
+Make sure all your code is pushed to your GitHub repository first.
+
+### Step 2: Deploy the Backend (Render Web Service)
+1. Go to [Render.com](https://render.com) and sign up for a free account.
+2. Click **New +** and select **Web Service**.
+3. Connect your GitHub account and select this repository.
+4. Set the **Root Directory** to `backend`.
+5. Set the **Build Command** to `npm install`.
+6. Set the **Start Command** to `npm start`.
+7. Select the **Free** tier and click **Create Web Service**.
+8. Once deployed, copy the API URL (e.g., `https://hostelsync-api.onrender.com`).
+
+### Step 3: Deploy the Frontend (Render Static Site or Vercel)
+1. Go to Render.com, click **New +** and select **Static Site**.
+2. Select your repository again.
+3. Set the **Root Directory** to `frontend`.
+4. Set the **Build Command** to `npm install && npm run build`.
+5. Set the **Publish Directory** to `frontend/dist`.
+6. **IMPORTANT**: Expand Advanced settings and add an Environment Variable:
+   - Key: `VITE_API_URL`
+   - Value: `[Paste your Backend API URL from Step 2]`
+7. Add a Rewrite Rule (to fix React Router):
+   - Source: `/*`
+   - Destination: `/index.html`
+   - Action: `Rewrite`
+8. Click **Create Static Site**.
+
+Once it finishes building, Render will give you a public URL (e.g., `https://hostelsync.onrender.com`) that you can send to anyone!
+
+---
+
+## 💻 Running Locally
 
 ### Option 1: Using Docker (Recommended)
-You can run the entire application using Docker and Docker Compose.
-1. Ensure Docker and Docker Compose are installed.
-2. Clone this repository and navigate to the root directory.
-3. Run the following command:
-   ```bash
-   docker-compose up --build -d
-   ```
-4. The frontend will be available at `http://localhost:80` and the backend API at `http://localhost:5000`.
+```bash
+docker-compose up --build -d
+```
+The frontend will be at `http://localhost:80`.
 
-### Option 2: Running Locally (Node.js)
+### Option 2: Running Manually (Node.js)
 1. **Backend:**
    ```bash
    cd backend
    npm install
    npm start
    ```
-   *The backend will run on `http://localhost:5000`.*
-   *Note: The SQLite database file will be automatically created at `backend/data/hostel.db`.*
 
 2. **Frontend:**
    ```bash
@@ -30,17 +60,27 @@ You can run the entire application using Docker and Docker Compose.
    npm install
    npm run dev
    ```
-   *The frontend will run on `http://localhost:5173`.*
+   Open `http://localhost:5173`.
 
-## Database Schema & Logic
+---
 
 ### Entity-Relationship (ER) Diagram
 ```mermaid
 erDiagram
+    users {
+        INTEGER id PK
+        TEXT username UK
+        TEXT password
+    }
+    students {
+        INTEGER id PK
+        TEXT name
+        TEXT register_no UK
+        INTEGER room_id
+    }
     rooms {
         INTEGER id PK
         TEXT room_number UK
-        TEXT occupant_name
         BOOLEAN is_vacant
     }
     complaints {
@@ -48,32 +88,18 @@ erDiagram
         INTEGER room_id FK
         TEXT description
         TEXT current_status
-        DATETIME created_at
-        DATETIME updated_at
     }
     complaint_history {
         INTEGER id PK
         INTEGER complaint_id FK
         TEXT status
-        DATETIME changed_at
     }
     
     rooms ||--o{ complaints : "has"
     complaints ||--o{ complaint_history : "tracks"
+    rooms ||--o{ students : "houses"
 ```
 
 ### Main Design Decision Justification
 Instead of overwriting the status column inside the `complaints` table every time an update occurs, we designed a separate `complaint_history` table. 
 **Justification:** A single overwritten column can only answer what the status is *right now*. A separate history table lets the warden track the entire lifecycle of a complaint, including how long each phase took and if it bounced between outstanding and resolved multiple times. This perfectly captures the historical context needed to prevent repeated student complaints from being lost.
-
-- `rooms`: Stores `room_number`, `occupant_name`, and `is_vacant` (Boolean).
-- `complaints`: Stores `room_id`, `description`, `current_status` (outstanding/resolved), and timestamps.
-- `complaint_history`: Stores the history of status changes for each complaint to avoid losing information by overwriting.
-
-## What Each Field Means
-- **Days Outstanding**: A derived figure calculated on the backend. It represents the time elapsed between when the complaint was created and the current server time. 
-- **Urgent Attention**: Any outstanding complaint older than 48 hours is highlighted automatically.
-- **Occupancy Status**: Shows whether a room is vacant or occupied.
-
-## Outstanding Tasks
-- Record a short demonstration video (this requires manual screen recording tools).

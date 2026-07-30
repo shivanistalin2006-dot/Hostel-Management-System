@@ -8,14 +8,32 @@ const db = new sqlite3.Database(dbPath, (err) => {
   } else {
     console.log('Connected to the SQLite database.');
     
-    // Create tables
     db.serialize(() => {
+      // Create Users table for Login
+      db.run(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL
+        )
+      `);
+
+      // Create Students table
+      db.run(`
+        CREATE TABLE IF NOT EXISTS students (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          register_no TEXT UNIQUE NOT NULL,
+          contact TEXT,
+          room_id INTEGER
+        )
+      `);
+
       // Rooms table
       db.run(`
         CREATE TABLE IF NOT EXISTS rooms (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           room_number TEXT UNIQUE NOT NULL,
-          occupant_name TEXT,
           is_vacant BOOLEAN DEFAULT 1
         )
       `);
@@ -44,7 +62,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
         )
       `);
 
-      // Insert some initial data if empty
+      // Insert default Admin user if empty
+      db.get('SELECT COUNT(*) AS count FROM users', (err, row) => {
+        if (!err && row.count === 0) {
+          db.run('INSERT INTO users (username, password) VALUES (?, ?)', ['admin', 'admin123']);
+        }
+      });
+
+      // Insert some initial rooms if empty
       db.get('SELECT COUNT(*) AS count FROM rooms', (err, row) => {
         if (!err && row.count === 0) {
           const stmt = db.prepare('INSERT INTO rooms (room_number, is_vacant) VALUES (?, ?)');
