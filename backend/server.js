@@ -85,6 +85,27 @@ app.get('/api/students', (req, res) => {
   });
 });
 
+app.post('/api/students', (req, res) => {
+  const { name, register_no, contact, parent_contact, hostel_id, room_id } = req.body;
+  // Create user account first
+  const username = register_no; // Using register_no as user ID
+  const password = contact;     // Using contact number as password
+  
+  db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, password, 'student'], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    const user_id = this.lastID;
+    
+    db.run(
+      'INSERT INTO students (user_id, name, register_no, contact, parent_contact, hostel_id, room_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [user_id, name, register_no, contact, parent_contact, hostel_id || null, room_id || null],
+      function(err2) {
+        if (err2) return res.status(500).json({ error: err2.message });
+        res.json({ success: true, id: this.lastID, username, password });
+      }
+    );
+  });
+});
+
 app.get('/api/students/:id', (req, res) => {
   db.get(`
     SELECT s.*, r.room_number, h.name as hostel_name 

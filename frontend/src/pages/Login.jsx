@@ -24,7 +24,7 @@ const Login = () => {
         navigate('/app');
       }
     } catch (err) {
-      setError('Invalid credentials. Admin: admin/admin123, Student: student1/student123');
+      setError('Invalid username or password. Please try again.');
     }
   };
 
@@ -46,7 +46,7 @@ const Login = () => {
               type="text" 
               value={username} 
               onChange={e => setUsername(e.target.value)} 
-              placeholder="admin or student1" 
+              placeholder="Enter your username" 
               required 
             />
           </div>
@@ -56,7 +56,7 @@ const Login = () => {
               type="password" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 
-              placeholder="admin123 or student123" 
+              placeholder="Enter your password" 
               required 
             />
           </div>
