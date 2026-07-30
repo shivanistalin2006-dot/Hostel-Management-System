@@ -1,7 +1,14 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-const dbPath = path.resolve(__dirname, 'hostel.db');
+// Ensure data directory exists
+const dataDir = path.resolve(__dirname, 'data');
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir);
+}
+
+const dbPath = path.resolve(dataDir, 'hostel.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database', err.message);
@@ -9,49 +16,109 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.log('Connected to the SQLite database.');
     
     db.serialize(() => {
-      // Create Users table for Login
+      // Create Users table for Login (Admin & Student roles)
       db.run(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT UNIQUE NOT NULL,
-          password TEXT NOT NULL
+          password TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'student' -- 'admin' or 'student'
         )
       `);
 
-      // Create Students table
+      // Create Hostels table
       db.run(`
-        CREATE TABLE IF NOT EXISTS students (
+        CREATE TABLE IF NOT EXISTS hostels (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
-          register_no TEXT UNIQUE NOT NULL,
-          contact TEXT,
-          room_id INTEGER
+          type TEXT NOT NULL -- 'Boys' or 'Girls'
         )
       `);
 
-      // Rooms table
+      // Create Rooms table (expanded)
       db.run(`
         CREATE TABLE IF NOT EXISTS rooms (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          hostel_id INTEGER,
           room_number TEXT UNIQUE NOT NULL,
-          is_vacant BOOLEAN DEFAULT 1
+          floor INTEGER DEFAULT 1,
+          capacity INTEGER DEFAULT 2,
+          is_vacant BOOLEAN DEFAULT 1,
+          FOREIGN KEY (hostel_id) REFERENCES hostels(id)
         )
       `);
 
-      // Complaints table
+      // Create Students table (expanded)
+      db.run(`
+        CREATE TABLE IF NOT EXISTS students (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER UNIQUE,
+          name TEXT NOT NULL,
+          register_no TEXT UNIQUE NOT NULL,
+          contact TEXT,
+          parent_contact TEXT NOT NULL,
+          profile_pic_url TEXT,
+          room_id INTEGER,
+          hostel_id INTEGER,
+          FOREIGN KEY (user_id) REFERENCES users(id),
+          FOREIGN KEY (room_id) REFERENCES rooms(id),
+          FOREIGN KEY (hostel_id) REFERENCES hostels(id)
+        )
+      `);
+
+      // Leave & OD Applications
+      db.run(`
+        CREATE TABLE IF NOT EXISTS leaves (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_id INTEGER NOT NULL,
+          type TEXT NOT NULL, -- 'Leave' or 'OD'
+          start_date DATE NOT NULL,
+          end_date DATE NOT NULL,
+          reason TEXT NOT NULL,
+          status TEXT DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+          FOREIGN KEY (student_id) REFERENCES students(id)
+        )
+      `);
+
+      // Food Menus
+      db.run(`
+        CREATE TABLE IF NOT EXISTS menus (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date DATE NOT NULL,
+          breakfast TEXT,
+          snack TEXT,
+          lunch TEXT,
+          tea TEXT,
+          dinner TEXT
+        )
+      `);
+
+      // Announcements
+      db.run(`
+        CREATE TABLE IF NOT EXISTS announcements (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          content TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Complaints
       db.run(`
         CREATE TABLE IF NOT EXISTS complaints (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          student_id INTEGER,
           room_id INTEGER NOT NULL,
           description TEXT NOT NULL,
           current_status TEXT DEFAULT 'outstanding',
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (student_id) REFERENCES students(id),
           FOREIGN KEY (room_id) REFERENCES rooms(id)
         )
       `);
 
-      // Complaint History table
+      // Complaint History
       db.run(`
         CREATE TABLE IF NOT EXISTS complaint_history (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,23 +129,39 @@ const db = new sqlite3.Database(dbPath, (err) => {
         )
       `);
 
-      // Insert default Admin user if empty
+      // Initialize default data if empty
       db.get('SELECT COUNT(*) AS count FROM users', (err, row) => {
         if (!err && row.count === 0) {
-          db.run('INSERT INTO users (username, password) VALUES (?, ?)', ['admin', 'admin123']);
+          // Add Admin
+          db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['admin', 'admin123', 'admin']);
+          // Add a default student for testing
+          db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['student1', 'student123', 'student'], function(err) {
+            if (!err) {
+              const studentUserId = this.lastID;
+              db.run('INSERT INTO hostels (name, type) VALUES (?, ?)', ['Boys Hostel A', 'Boys'], function(err) {
+                if (!err) {
+                  const hostelId = this.lastID;
+                  db.run('INSERT INTO rooms (hostel_id, room_number, floor, capacity) VALUES (?, ?, ?, ?)', [hostelId, '101', 1, 2], function(err) {
+                    if (!err) {
+                      db.run(`INSERT INTO students (user_id, name, register_no, parent_contact, hostel_id, room_id) 
+                              VALUES (?, ?, ?, ?, ?, ?)`, 
+                              [studentUserId, 'Test Student', 'REG001', '1234567890', hostelId, this.lastID]);
+                    }
+                  });
+                }
+              });
+              db.run('INSERT INTO hostels (name, type) VALUES (?, ?)', ['Girls Hostel A', 'Girls']);
+            }
+          });
         }
       });
-
-      // Insert some initial rooms if empty
-      db.get('SELECT COUNT(*) AS count FROM rooms', (err, row) => {
+      
+      db.get('SELECT COUNT(*) AS count FROM menus', (err, row) => {
         if (!err && row.count === 0) {
-          const stmt = db.prepare('INSERT INTO rooms (room_number, is_vacant) VALUES (?, ?)');
-          stmt.run('101', 1);
-          stmt.run('102', 1);
-          stmt.run('103', 1);
-          stmt.run('201', 1);
-          stmt.run('202', 1);
-          stmt.finalize();
+          const today = new Date().toISOString().split('T')[0];
+          db.run('INSERT INTO menus (date, breakfast, snack, lunch, tea, dinner) VALUES (?, ?, ?, ?, ?, ?)',
+            [today, 'Idli Sambar', 'Biscuits', 'Meals', 'Tea & Samosa', 'Chapathi']
+          );
         }
       });
     });
