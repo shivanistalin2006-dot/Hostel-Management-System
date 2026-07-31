@@ -48,6 +48,7 @@ const Students = () => {
       alert('Failed to add student');
       console.error(err);
     }
+  };
   const handleAssignRoom = async (studentId, roomId) => {
     if (!roomId) return;
     const room = rooms.find(r => r.id === parseInt(roomId));
