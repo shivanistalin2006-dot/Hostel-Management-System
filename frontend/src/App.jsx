@@ -59,10 +59,10 @@ function App() {
             {/* Student Only Routes */}
             <Route path="profile" element={<PrivateRoute allowedRoles={['student']}><Profile /></PrivateRoute>} />
             
-            {/* Admin Only Routes */}
-            <Route path="rooms" element={<PrivateRoute allowedRoles={['admin']}><Rooms /></PrivateRoute>} />
-            <Route path="students" element={<PrivateRoute allowedRoles={['admin']}><Students /></PrivateRoute>} />
-            <Route path="menus" element={<PrivateRoute allowedRoles={['admin']}><Menus /></PrivateRoute>} />
+            {/* Admin & Warden Routes */}
+            <Route path="rooms" element={<PrivateRoute allowedRoles={['admin', 'warden']}><Rooms /></PrivateRoute>} />
+            <Route path="students" element={<PrivateRoute allowedRoles={['admin', 'warden']}><Students /></PrivateRoute>} />
+            <Route path="menus" element={<PrivateRoute allowedRoles={['admin', 'warden']}><Menus /></PrivateRoute>} />
           </Route>
         </Routes>
       </BrowserRouter>
