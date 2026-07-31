@@ -18,6 +18,7 @@ const Students = () => {
   const role = localStorage.getItem('role');
   
   const fetchData = async () => {
+    try {
       const res = await axios.get(`${API_URL}/students`);
       setStudents(res.data);
       if (role === 'admin') {
