@@ -38,14 +38,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
       // Create Rooms table (expanded)
       db.run(`
-        CREATE TABLE IF NOT EXISTS rooms (
+          CREATE TABLE IF NOT EXISTS rooms (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           hostel_id INTEGER,
-          room_number TEXT UNIQUE NOT NULL,
+          room_number TEXT NOT NULL,
           floor INTEGER DEFAULT 1,
           capacity INTEGER DEFAULT 2,
           status TEXT DEFAULT 'Vacant', -- 'Vacant', 'Occupied', 'Maintenance'
-          FOREIGN KEY (hostel_id) REFERENCES hostels(id)
+          FOREIGN KEY (hostel_id) REFERENCES hostels(id),
+          UNIQUE(hostel_id, room_number)
         )
       `);
 
@@ -210,6 +211,19 @@ const db = new sqlite3.Database(dbPath, (err) => {
         }
         // Force update admin credentials AFTER ensuring column exists (or fails if it already exists, which is fine)
         db.run("UPDATE users SET username = 'shivani', password = 'shivu', email = 'shivanistalin2006@gmail.com' WHERE role = 'admin'");
+      });
+
+      // Migrate rooms table to remove global UNIQUE on room_number and add composite UNIQUE(hostel_id, room_number)
+      db.get("SELECT sql FROM sqlite_master WHERE type='table' AND name='rooms'", (err, row) => {
+        if (row && row.sql.includes("room_number TEXT UNIQUE")) {
+          console.log("Migrating rooms table to fix UNIQUE constraint...");
+          db.serialize(() => {
+            db.run("CREATE TABLE rooms_new (id INTEGER PRIMARY KEY AUTOINCREMENT, hostel_id INTEGER, room_number TEXT NOT NULL, floor INTEGER DEFAULT 1, capacity INTEGER DEFAULT 2, status TEXT DEFAULT 'Vacant', FOREIGN KEY (hostel_id) REFERENCES hostels(id), UNIQUE(hostel_id, room_number))");
+            db.run("INSERT INTO rooms_new SELECT * FROM rooms");
+            db.run("DROP TABLE rooms");
+            db.run("ALTER TABLE rooms_new RENAME TO rooms");
+          });
+        }
       });
 
     });

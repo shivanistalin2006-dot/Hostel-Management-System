@@ -38,7 +38,12 @@ const Rooms = () => {
       setRoomNumber('');
       fetchData();
     } catch (err) {
-      alert('Failed to create room');
+      const msg = err.response?.data?.error || err.message;
+      if (msg.includes('UNIQUE constraint failed')) {
+        alert('Failed to create room: A room with this number already exists in this hostel.');
+      } else {
+        alert('Failed to create room: ' + msg);
+      }
     }
   };
 
