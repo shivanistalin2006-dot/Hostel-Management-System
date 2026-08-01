@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Home } from 'lucide-react';
+import { Home, Eye, EyeOff } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -43,24 +44,39 @@ const Login = () => {
         
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label>Username</label>
+            <label>Username or Email</label>
             <input 
               type="text" 
               value={username} 
               onChange={e => setUsername(e.target.value)} 
-              placeholder="Enter your username" 
+              placeholder="Enter your username or email" 
               required 
             />
           </div>
-          <div className="form-group">
+          <div className="form-group" style={{position: 'relative'}}>
             <label>Password</label>
             <input 
-              type="password" 
+              type={showPassword ? "text" : "password"}
               value={password} 
               onChange={e => setPassword(e.target.value)} 
               placeholder="Enter your password" 
               required 
             />
+            <button 
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                top: '38px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer'
+              }}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
           <button type="submit" className="btn-primary" style={{marginTop: '1rem', width: '100%'}}>Login</button>
         </form>

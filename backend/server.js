@@ -24,7 +24,7 @@ const upload = multer({ storage: storage });
 // --- Auth Endpoints ---
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
-  db.get('SELECT * FROM users WHERE username = ? AND password = ?', [username, password], (err, user) => {
+  db.get('SELECT * FROM users WHERE (username = ? OR email = ?) AND password = ?', [username, username, password], (err, user) => {
     if (err) return res.status(500).json({ error: err.message });
     if (user) {
       if (user.role === 'student') {
@@ -101,8 +101,10 @@ app.get('/api/students', (req, res) => {
 
 app.post('/api/students', (req, res) => {
   const { name, register_no, contact, parent_contact, hostel_id, room_id } = req.body;
+  if (!/^\d{10}$/.test(contact)) return res.status(400).json({ error: 'Contact number must be exactly 10 digits' });
+
   // Create user account first
-  const username = register_no; // Using register_no as user ID
+  const username = name.trim(); // Using name as user ID
   const password = contact;     // Using contact number as password
   
   db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', [username, password, 'student'], function(err) {
@@ -189,6 +191,54 @@ app.post('/api/leaves', (req, res) => {
 // --- Rooms & Hostels ---
 app.get('/api/hostels', (req, res) => {
   db.all('SELECT * FROM hostels', [], (err, rows) => res.json(rows));
+});
+
+// --- Wardens ---
+app.get('/api/wardens', (req, res) => {
+  db.all(`
+    SELECT w.*, u.email, u.username, h.name as hostel_name 
+    FROM wardens w 
+    JOIN users u ON w.user_id = u.id
+    LEFT JOIN hostels h ON w.hostel_id = h.id
+  `, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.post('/api/wardens', (req, res) => {
+  const { name, email, contact, hostel_id } = req.body;
+  if (!/^\d{10}$/.test(contact)) return res.status(400).json({ error: 'Contact number must be exactly 10 digits' });
+  
+  const username = name.trim();
+  const password = contact;
+
+  db.run('INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)', [username, email, password, 'warden'], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    const user_id = this.lastID;
+    
+    db.run(
+      'INSERT INTO wardens (user_id, name, contact, hostel_id) VALUES (?, ?, ?, ?)',
+      [user_id, name, contact, hostel_id || null],
+      function(err2) {
+        if (err2) return res.status(500).json({ error: err2.message });
+        res.json({ success: true, id: this.lastID, username, password });
+      }
+    );
+  });
+});
+
+app.delete('/api/wardens/:id', (req, res) => {
+  db.get('SELECT user_id FROM wardens WHERE id = ?', [req.params.id], (err, row) => {
+    if (!row) return res.status(404).json({ error: 'Warden not found' });
+    db.run('DELETE FROM wardens WHERE id = ?', [req.params.id], err2 => {
+      if (err2) return res.status(500).json({ error: err2.message });
+      db.run('DELETE FROM users WHERE id = ?', [row.user_id], err3 => {
+        if (err3) return res.status(500).json({ error: err3.message });
+        res.json({ success: true });
+      });
+    });
+  });
 });
 
 app.get('/api/rooms', (req, res) => {

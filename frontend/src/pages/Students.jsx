@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Eye, EyeOff } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -14,6 +15,7 @@ const Students = () => {
     hostel_id: '',
     room_id: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [rooms, setRooms] = useState([]);
   const role = localStorage.getItem('role');
   
@@ -87,7 +89,7 @@ const Students = () => {
         <div className="card" style={{marginBottom: '2rem'}}>
           <h3>Add New Student</h3>
           <p style={{fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1.5rem'}}>
-            The student's Register Number will be used as their Username, and their Contact Number will be their Password.
+            The student's Name will be used as their Username, and their 10-digit Contact Number will be their Password.
           </p>
           <form onSubmit={handleAddStudent} style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
             <div className="form-group">
@@ -95,16 +97,47 @@ const Students = () => {
               <input value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})} required />
             </div>
             <div className="form-group">
-              <label>Register Number (Username)</label>
+              <label>Register Number</label>
               <input value={newStudent.register_no} onChange={e => setNewStudent({...newStudent, register_no: e.target.value})} required />
             </div>
-            <div className="form-group">
+            <div className="form-group" style={{position: 'relative'}}>
               <label>Contact Number (Password)</label>
-              <input value={newStudent.contact} onChange={e => setNewStudent({...newStudent, contact: e.target.value})} required />
+              <input 
+                type={showPassword ? "text" : "password"}
+                pattern="[0-9]{10}"
+                maxLength="10"
+                value={newStudent.contact} 
+                onChange={e => setNewStudent({...newStudent, contact: e.target.value})} 
+                placeholder="10-digit number"
+                required 
+              />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '38px',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
             <div className="form-group">
               <label>Parent Contact Number</label>
-              <input value={newStudent.parent_contact} onChange={e => setNewStudent({...newStudent, parent_contact: e.target.value})} required />
+              <input 
+                type="text"
+                pattern="[0-9]{10}"
+                maxLength="10"
+                value={newStudent.parent_contact} 
+                onChange={e => setNewStudent({...newStudent, parent_contact: e.target.value})} 
+                placeholder="10-digit number"
+                required 
+              />
             </div>
             {/* Keeping hostel and room text inputs simple for this iteration since we just need the feature hooked up */}
             <div className="form-group">

@@ -8,6 +8,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import WardenDashboard from './pages/WardenDashboard';
 import Rooms from './pages/Rooms';
 import Students from './pages/Students';
+import Wardens from './pages/Wardens';
 import Complaints from './pages/Complaints';
 import Leaves from './pages/Leaves';
 import Menus from './pages/Menus';
@@ -62,6 +63,7 @@ function App() {
             {/* Admin & Warden Routes */}
             <Route path="rooms" element={<PrivateRoute allowedRoles={['admin', 'warden']}><Rooms /></PrivateRoute>} />
             <Route path="students" element={<PrivateRoute allowedRoles={['admin', 'warden']}><Students /></PrivateRoute>} />
+            <Route path="wardens" element={<PrivateRoute allowedRoles={['admin']}><Wardens /></PrivateRoute>} />
             <Route path="menus" element={<PrivateRoute allowedRoles={['admin', 'warden']}><Menus /></PrivateRoute>} />
           </Route>
         </Routes>

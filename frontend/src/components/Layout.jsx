@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Home, Grid, Users, AlertTriangle, LogOut, Search, User, Sun, Moon, Calendar, Coffee } from 'lucide-react';
+import { Home, Grid, Users, AlertTriangle, LogOut, Search, User, Sun, Moon, Calendar, Coffee, Shield } from 'lucide-react';
 import { ThemeContext } from '../App';
 import axios from 'axios';
 
@@ -51,6 +51,11 @@ const Layout = () => {
               <NavLink to="/app/students" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
                 <Users size={20} /> Students
               </NavLink>
+              {role === 'admin' && (
+                <NavLink to="/app/wardens" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+                  <Shield size={20} /> Wardens
+                </NavLink>
+              )}
               <NavLink to="/app/menus" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
                 <Coffee size={20} /> Food Menus
               </NavLink>

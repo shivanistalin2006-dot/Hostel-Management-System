@@ -21,6 +21,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           username TEXT UNIQUE NOT NULL,
+          email TEXT UNIQUE,
           password TEXT NOT NULL,
           role TEXT NOT NULL DEFAULT 'student' -- 'admin', 'student', or 'warden'
         )
@@ -158,7 +159,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
       db.get('SELECT COUNT(*) AS count FROM users', (err, row) => {
         if (!err && row.count === 0) {
           // Add Admin
-          db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['admin', 'admin123', 'admin']);
+          db.run('INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)', ['shivani', 'shivu', 'shivanistalin2006@gmail.com', 'admin']);
           
           // Add default Warden
           db.run('INSERT INTO users (username, password, role) VALUES (?, ?, ?)', ['warden1', 'warden123', 'warden'], function(err) {
@@ -202,6 +203,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
           );
         }
       });
+      // Schema Migrations (Run every time)
+      db.run("ALTER TABLE users ADD COLUMN email TEXT UNIQUE", (err) => {
+        if (!err) {
+          console.log("Added email column to users table.");
+        }
+      });
+      // Force update admin credentials if they exist
+      db.run("UPDATE users SET username = 'shivani', password = 'shivu', email = 'shivanistalin2006@gmail.com' WHERE role = 'admin'");
+
     });
   }
 });
