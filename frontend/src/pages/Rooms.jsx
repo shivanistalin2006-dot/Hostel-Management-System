@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Plus, MapPin, Users, Settings } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -32,9 +33,28 @@ const Rooms = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app we need a POST /api/rooms. We just alert for this demo since the focus is UI layout
-    alert('Room created (demo)');
-    setRoomNumber('');
+    try {
+      await axios.post(`${API_URL}/rooms`, { hostel_id: hostelId, room_number: roomNumber, floor, capacity, status });
+      setRoomNumber('');
+      fetchData();
+    } catch (err) {
+      alert('Failed to create room');
+    }
+  };
+
+  const getStatusDisplay = (room) => {
+    if (room.status === 'Maintenance') return 'Maintenance';
+    const vacant = room.capacity - (room.occupied_count || 0);
+    if (vacant > 0) return `${vacant} place(s) vacancy`;
+    if (vacant === 0) return 'Occupied (Full)';
+    return 'Overbooked';
+  };
+
+  const getBadgeClass = (room) => {
+    if (room.status === 'Maintenance') return 'rejected';
+    const vacant = room.capacity - (room.occupied_count || 0);
+    if (vacant > 0) return 'approved';
+    return 'pending'; // Orange for full/overbooked
   };
 
   return (
@@ -46,7 +66,9 @@ const Rooms = () => {
 
       <div className="dashboard-grid">
         <div className="card">
-          <h3>Add New Room</h3>
+          <h3 style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-primary)'}}>
+            <Plus size={20} /> Add New Room
+          </h3>
           <form onSubmit={handleSubmit} style={{marginTop: '1rem'}}>
             <div className="form-group">
               <label>Hostel</label>
@@ -75,19 +97,22 @@ const Rooms = () => {
               </select>
             </div>
             <div className="form-group">
-              <label>Initial Status</label>
+              <label><Settings size={14} style={{verticalAlign: 'middle', marginRight: '4px'}} /> Initial Status</label>
               <select value={status} onChange={e => setStatus(e.target.value)}>
-                <option value="Vacant">Vacant</option>
-                <option value="Occupied">Occupied</option>
+                <option value="Active">Active</option>
                 <option value="Maintenance">Maintenance</option>
               </select>
             </div>
-            <button type="submit" className="btn-primary" style={{width: '100%'}}>Create Room</button>
+            <button type="submit" className="btn-primary" style={{width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem'}}>
+              <Plus size={18} /> Create Room
+            </button>
           </form>
         </div>
 
         <div className="card">
-          <h3>Room Directory</h3>
+          <h3 style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+            <MapPin size={20} /> Room Directory
+          </h3>
           {rooms.length === 0 ? <p>No rooms found.</p> : (
             <table>
               <thead>
@@ -109,7 +134,7 @@ const Rooms = () => {
                     <td>
                       {role === 'admin' ? (
                         <select 
-                          value={r.status} 
+                          value={r.status === 'Maintenance' ? 'Maintenance' : 'Active'} 
                           onChange={async (e) => {
                             try {
                               await axios.put(`${API_URL}/rooms/${r.id}/status`, { status: e.target.value });
@@ -118,15 +143,14 @@ const Rooms = () => {
                               alert('Failed to update status');
                             }
                           }}
-                          style={{width: 'auto', padding: '0.25rem', fontSize: '0.85rem', borderRadius: '4px'}}
+                          style={{width: 'auto', padding: '0.35rem', fontSize: '0.85rem', borderRadius: '6px', fontWeight: 600, border: '1px solid var(--border-color)', color: r.status === 'Maintenance' ? 'var(--danger)' : 'var(--success)'}}
                         >
-                          <option value="Vacant">Vacant</option>
-                          <option value="Occupied">Occupied</option>
+                          <option value="Active">{getStatusDisplay(r)}</option>
                           <option value="Maintenance">Maintenance</option>
                         </select>
                       ) : (
-                        <span className={`badge ${r.status === 'Vacant' ? 'approved' : r.status === 'Maintenance' ? 'rejected' : 'pending'}`}>
-                          {r.status}
+                        <span className={`badge ${getBadgeClass(r)}`}>
+                          {getStatusDisplay(r)}
                         </span>
                       )}
                     </td>

@@ -242,10 +242,27 @@ app.delete('/api/wardens/:id', (req, res) => {
 });
 
 app.get('/api/rooms', (req, res) => {
-  db.all('SELECT r.*, h.name as hostel_name FROM rooms r JOIN hostels h ON r.hostel_id = h.id', [], (err, rows) => {
+  db.all(`
+    SELECT r.*, h.name as hostel_name, 
+           (SELECT COUNT(*) FROM students s WHERE s.room_id = r.id) as occupied_count
+    FROM rooms r 
+    JOIN hostels h ON r.hostel_id = h.id
+  `, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
+});
+
+app.post('/api/rooms', (req, res) => {
+  const { hostel_id, room_number, floor, capacity, status } = req.body;
+  db.run(
+    'INSERT INTO rooms (hostel_id, room_number, floor, capacity, status) VALUES (?, ?, ?, ?, ?)',
+    [hostel_id, room_number, floor, capacity, status || 'Vacant'],
+    function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, id: this.lastID });
+    }
+  );
 });
 
 app.put('/api/rooms/:id/status', (req, res) => {
