@@ -204,13 +204,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
         }
       });
       // Schema Migrations (Run every time)
-      db.run("ALTER TABLE users ADD COLUMN email TEXT UNIQUE", (err) => {
+      db.run("ALTER TABLE users ADD COLUMN email TEXT", (err) => {
         if (!err) {
           console.log("Added email column to users table.");
         }
+        // Force update admin credentials AFTER ensuring column exists (or fails if it already exists, which is fine)
+        db.run("UPDATE users SET username = 'shivani', password = 'shivu', email = 'shivanistalin2006@gmail.com' WHERE role = 'admin'");
       });
-      // Force update admin credentials if they exist
-      db.run("UPDATE users SET username = 'shivani', password = 'shivu', email = 'shivanistalin2006@gmail.com' WHERE role = 'admin'");
 
     });
   }
