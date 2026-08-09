@@ -1,4 +1,4 @@
-import React, { useContext, useRef } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, Sun, Moon, ArrowRight, Grid, Users, AlertTriangle, Calendar, ShieldCheck } from 'lucide-react';
 import { ThemeContext } from '../App';
@@ -7,6 +7,7 @@ const Landing = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useContext(ThemeContext);
   const featuresRef = useRef(null);
+  const [activeFeatureTab, setActiveFeatureTab] = useState('warden');
 
   const scrollToFeatures = () => {
     featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -76,42 +77,89 @@ const Landing = () => {
       {/* Features Section */}
       <section ref={featuresRef} style={{padding: '5rem 5rem', background: 'var(--bg-card)', borderTop: '1px solid var(--border-color)'}}>
         <div style={{maxWidth: 1400, margin: '0 auto'}}>
-          <div style={{textAlign: 'center', marginBottom: '4rem'}}>
+          <div style={{textAlign: 'center', marginBottom: '3rem'}}>
             <h2 style={{fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', color: 'var(--text-primary)'}}>Everything you need to run your hostel</h2>
             <p style={{fontSize: '1.2rem', color: 'var(--text-secondary)'}}>Powerful features designed to automate daily administration.</p>
           </div>
           
+          <div style={{display: 'flex', justifyContent: 'center', marginBottom: '3rem'}}>
+            <div style={{display: 'inline-flex', background: 'var(--bg-main)', borderRadius: '8px', padding: '0.5rem', border: '1px solid var(--border-color)'}}>
+              <button 
+                onClick={() => setActiveFeatureTab('warden')}
+                style={{
+                  padding: '0.75rem 2rem', 
+                  borderRadius: '6px', 
+                  border: 'none', 
+                  background: activeFeatureTab === 'warden' ? 'var(--accent-primary)' : 'transparent',
+                  color: activeFeatureTab === 'warden' ? 'white' : 'var(--text-secondary)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                For Wardens
+              </button>
+              <button 
+                onClick={() => setActiveFeatureTab('student')}
+                style={{
+                  padding: '0.75rem 2rem', 
+                  borderRadius: '6px', 
+                  border: 'none', 
+                  background: activeFeatureTab === 'student' ? 'var(--accent-primary)' : 'transparent',
+                  color: activeFeatureTab === 'student' ? 'white' : 'var(--text-secondary)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                For Students
+              </button>
+            </div>
+          </div>
+          
           <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem'}}>
-            {/* Feature 1 */}
-            <div className="card" style={{padding: '2rem'}}>
-              <Grid size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
-              <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Smart Room Allocation</h3>
-              <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Dynamic occupancy tracking and automatic vacancy calculation across all hostel blocks.</p>
-            </div>
-            {/* Feature 2 */}
-            <div className="card" style={{padding: '2rem'}}>
-              <Users size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
-              <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Student Directory</h3>
-              <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Centralized database with automated credential generation (Name & Contact) for instant onboarding.</p>
-            </div>
-            {/* Feature 3 */}
-            <div className="card" style={{padding: '2rem'}}>
-              <AlertTriangle size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
-              <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Digital Complaints</h3>
-              <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Students can log maintenance requests instantly, completely eliminating paper logbooks.</p>
-            </div>
-            {/* Feature 4 */}
-            <div className="card" style={{padding: '2rem'}}>
-              <ShieldCheck size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
-              <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Warden & Admin Portals</h3>
-              <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Role-based access control ensuring sensitive data is only accessible to authorized management.</p>
-            </div>
-            {/* Feature 5 */}
-            <div className="card" style={{padding: '2rem'}}>
-              <Calendar size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
-              <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Leave & OD Tracking</h3>
-              <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Approve or reject student out-passes and leaves digitally with full historical tracking.</p>
-            </div>
+            {activeFeatureTab === 'warden' ? (
+              <>
+                <div className="card" style={{padding: '2rem'}}>
+                  <Grid size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Smart Room Allocation</h3>
+                  <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Assign rooms digitally. The system automatically tracks capacities and calculates exact vacancies across all hostel blocks.</p>
+                </div>
+                <div className="card" style={{padding: '2rem'}}>
+                  <Users size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Student Directory</h3>
+                  <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Maintain a centralized database of all students. Quickly search by name, room number, or contact details.</p>
+                </div>
+                <div className="card" style={{padding: '2rem'}}>
+                  <ShieldCheck size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Approval Workflows</h3>
+                  <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Review and instantly approve or reject student leaves and Out-Duty (OD) applications from a centralized dashboard.</p>
+                </div>
+                <div className="card" style={{padding: '2rem'}}>
+                  <AlertTriangle size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Resolve Complaints</h3>
+                  <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Monitor incoming maintenance requests, update their status to resolved, and ensure a smooth living environment.</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="card" style={{padding: '2rem'}}>
+                  <Calendar size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Request Leaves & ODs</h3>
+                  <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Apply for leaves and out-passes directly through the app. Track the approval status of your requests in real-time.</p>
+                </div>
+                <div className="card" style={{padding: '2rem'}}>
+                  <AlertTriangle size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>Log Complaints</h3>
+                  <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Got a broken fan or a plumbing issue? Submit a maintenance ticket and track its resolution progress instantly.</p>
+                </div>
+                <div className="card" style={{padding: '2rem'}}>
+                  <Grid size={32} color="var(--accent-primary)" style={{marginBottom: '1rem'}} />
+                  <h3 style={{fontSize: '1.25rem', marginBottom: '0.5rem'}}>View Daily Menus</h3>
+                  <p style={{color: 'var(--text-secondary)', lineHeight: 1.5}}>Check the hostel mess menu for the day directly from your dashboard so you know exactly what's being served.</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
