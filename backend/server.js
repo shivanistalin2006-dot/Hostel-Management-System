@@ -62,6 +62,47 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+app.post('/api/login/google', (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  db.get('SELECT * FROM users WHERE email = ? OR username = ?', [email, email], (err, user) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (user) {
+      if (user.role === 'student') {
+        db.get('SELECT id as student_id, name FROM students WHERE user_id = ?', [user.id], (err, student) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({ 
+            success: true, 
+            token: 'dummy-token-student-google', 
+            user: user.username, 
+            role: user.role,
+            student_id: student ? student.student_id : null,
+            name: student ? student.name : user.username
+          });
+        });
+      } else if (user.role === 'warden') {
+        db.get('SELECT id as warden_id, name, hostel_id FROM wardens WHERE user_id = ?', [user.id], (err, warden) => {
+          if (err) return res.status(500).json({ error: err.message });
+          res.json({
+            success: true,
+            token: 'dummy-token-warden-google',
+            user: user.username,
+            role: user.role,
+            warden_id: warden ? warden.warden_id : null,
+            hostel_id: warden ? warden.hostel_id : null,
+            name: warden ? warden.name : user.username
+          });
+        });
+      } else {
+        res.json({ success: true, token: 'dummy-token-admin-google', user: user.username, role: user.role, name: 'Admin' });
+      }
+    } else {
+      res.status(401).json({ error: 'Google Account not found in the system. Please contact Admin.' });
+    }
+  });
+});
+
 // --- Dashboard Endpoints ---
 app.get('/api/dashboard/stats', (req, res) => {
   db.get(`
