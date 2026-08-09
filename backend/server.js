@@ -341,12 +341,36 @@ app.post('/api/attendance', (req, res) => {
   res.json({ success: true });
 });
 
-// --- Menus ---
-app.get('/api/menus/today', (req, res) => {
-  const today = new Date().toISOString().split('T')[0];
-  db.get('SELECT * FROM menus WHERE date = ?', [today], (err, row) => {
+// --- Menus (Weekly) ---
+app.get('/api/menus', (req, res) => {
+  db.all('SELECT * FROM weekly_menus', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(row || { date: today, breakfast: '', snack: '', lunch: '', tea: '', dinner: '' });
+    res.json(rows);
+  });
+});
+
+app.get('/api/menus/today', (req, res) => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayName = days[new Date().getDay()];
+  db.get('SELECT * FROM weekly_menus WHERE day_of_week = ?', [todayName], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(row || { day_of_week: todayName, breakfast: '', snack: '', lunch: '', tea: '', dinner: '' });
+  });
+});
+
+app.put('/api/menus/:day', (req, res) => {
+  const day = req.params.day;
+  const { breakfast, snack, lunch, tea, dinner } = req.body;
+  
+  db.run('UPDATE weekly_menus SET breakfast = ?, snack = ?, lunch = ?, tea = ?, dinner = ? WHERE day_of_week = ?',
+    [breakfast, snack, lunch, tea, dinner, day], function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      
+      const title = `Food Menu Updated`;
+      const content = `The food menu for ${day} has been updated by the Admin.`;
+      db.run('INSERT INTO announcements (title, content) VALUES (?, ?)', [title, content]);
+      
+      res.json({ success: true });
   });
 });
 

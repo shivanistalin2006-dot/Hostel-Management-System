@@ -107,11 +107,10 @@ const db = new sqlite3.Database(dbPath, (err) => {
         )
       `);
 
-      // Food Menus
+      // Food Menus (Weekly)
       db.run(`
-        CREATE TABLE IF NOT EXISTS menus (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          date DATE NOT NULL,
+        CREATE TABLE IF NOT EXISTS weekly_menus (
+          day_of_week TEXT PRIMARY KEY,
           breakfast TEXT,
           snack TEXT,
           lunch TEXT,
@@ -196,12 +195,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
         }
       });
       
-      db.get('SELECT COUNT(*) AS count FROM menus', (err, row) => {
+      db.get('SELECT COUNT(*) AS count FROM weekly_menus', (err, row) => {
         if (!err && row.count === 0) {
-          const today = new Date().toISOString().split('T')[0];
-          db.run('INSERT INTO menus (date, breakfast, snack, lunch, tea, dinner) VALUES (?, ?, ?, ?, ?, ?)',
-            [today, 'Idli Sambar', 'Biscuits', 'Meals', 'Tea & Samosa', 'Chapathi']
-          );
+          const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          db.serialize(() => {
+            const stmt = db.prepare('INSERT INTO weekly_menus (day_of_week, breakfast, snack, lunch, tea, dinner) VALUES (?, ?, ?, ?, ?, ?)');
+            days.forEach(day => {
+              stmt.run([day, 'Idli Sambar', 'Biscuits', 'Meals', 'Tea & Samosa', 'Chapathi']);
+            });
+            stmt.finalize();
+          });
         }
       });
       // Schema Migrations (Run every time)
