@@ -26,13 +26,6 @@ const Landing = () => {
           <button onClick={toggleTheme} className="theme-toggle" style={{border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-secondary)'}}>
             {theme === 'light' ? <Moon size={24} /> : <Sun size={24} />}
           </button>
-          <button 
-            onClick={() => navigate('/login')} 
-            className="btn-primary" 
-            style={{padding: '0.75rem 1.5rem', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--accent-primary)', color: 'white'}}
-          >
-            Login
-          </button>
         </div>
       </header>
 
