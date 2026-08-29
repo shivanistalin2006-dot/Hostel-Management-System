@@ -109,8 +109,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
       // Food Menus (Weekly)
       db.run(`
-        CREATE TABLE IF NOT EXISTS weekly_menus (
-          day_of_week TEXT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS menus (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          day_of_week TEXT UNIQUE NOT NULL,
           breakfast TEXT,
           snack TEXT,
           lunch TEXT,
@@ -195,19 +196,39 @@ const db = new sqlite3.Database(dbPath, (err) => {
         }
       });
       
-      db.get('SELECT COUNT(*) AS count FROM weekly_menus', (err, row) => {
+      db.get('SELECT COUNT(*) AS count FROM menus', (err, row) => {
         if (!err && row.count === 0) {
-          const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+          const stmt = db.prepare('INSERT INTO menus (day_of_week, breakfast, snack, lunch, tea, dinner) VALUES (?, ?, ?, ?, ?, ?)');
+          days.forEach(day => {
+            stmt.run([day, 'Idli & Sambar', 'Fruit / Biscuits', 'Rice & Curry', 'Tea & Samosa', 'Chapathi & Kurma']);
+          });
+          stmt.finalize();
+        }
+      });
+      // Schema Migrations (Run every time)
+      
+      // Migrate menus from date-based to day_of_week-based
+      db.get("SELECT sql FROM sqlite_master WHERE type='table' AND name='menus'", (err, row) => {
+        if (row && row.sql.includes("date DATE")) {
+          console.log("Migrating menus table to weekly format...");
           db.serialize(() => {
-            const stmt = db.prepare('INSERT INTO weekly_menus (day_of_week, breakfast, snack, lunch, tea, dinner) VALUES (?, ?, ?, ?, ?, ?)');
+            db.run("DROP TABLE menus");
+            db.run(`CREATE TABLE menus (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              day_of_week TEXT UNIQUE NOT NULL,
+              breakfast TEXT, snack TEXT, lunch TEXT, tea TEXT, dinner TEXT
+            )`);
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const stmt = db.prepare('INSERT INTO menus (day_of_week, breakfast, snack, lunch, tea, dinner) VALUES (?, ?, ?, ?, ?, ?)');
             days.forEach(day => {
-              stmt.run([day, 'Idli Sambar', 'Biscuits', 'Meals', 'Tea & Samosa', 'Chapathi']);
+              stmt.run([day, 'Idli & Sambar', 'Fruit / Biscuits', 'Rice & Curry', 'Tea & Samosa', 'Chapathi & Kurma']);
             });
             stmt.finalize();
           });
         }
       });
-      // Schema Migrations (Run every time)
+
       db.run("ALTER TABLE users ADD COLUMN email TEXT", (err) => {
         if (!err) {
           console.log("Added email column to users table.");

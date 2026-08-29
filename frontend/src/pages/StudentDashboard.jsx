@@ -28,29 +28,30 @@ const StudentDashboard = () => {
       <div className="dashboard-grid">
         <div className="card">
           <h3 style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-primary)'}}>
-            <Coffee size={24} /> {menu?.day_of_week ? `${menu.day_of_week}'s Menu` : "Today's Food Menu"}
+            <Coffee size={24} /> 
+            Today's Food Menu {menu?.day_of_week ? `(${menu.day_of_week})` : ''}
           </h3>
           {menu ? (
             <div style={{marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem'}}>
-              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '8px', borderTop: '4px solid var(--accent-primary)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'}}>
-                <div style={{fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase'}}>Breakfast</div>
-                <div style={{fontSize: '1rem', marginTop: '0.5rem', fontWeight: 500}}>{menu.breakfast || 'Not set'}</div>
+              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '12px', borderTop: '4px solid var(--accent-primary)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'}}>
+                <div style={{fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Breakfast</div>
+                <div style={{fontSize: '1rem', fontWeight: 600, marginTop: '0.5rem', color: 'var(--text-primary)'}}>{menu.breakfast || '-'}</div>
               </div>
-              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '8px', borderTop: '4px solid #f59e0b', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'}}>
-                <div style={{fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase'}}>Snack</div>
-                <div style={{fontSize: '1rem', marginTop: '0.5rem', fontWeight: 500}}>{menu.snack || 'Not set'}</div>
+              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '12px', borderTop: '4px solid #f59e0b', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'}}>
+                <div style={{fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Snack</div>
+                <div style={{fontSize: '1rem', fontWeight: 600, marginTop: '0.5rem', color: 'var(--text-primary)'}}>{menu.snack || '-'}</div>
               </div>
-              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '8px', borderTop: '4px solid #3b82f6', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'}}>
-                <div style={{fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase'}}>Lunch</div>
-                <div style={{fontSize: '1rem', marginTop: '0.5rem', fontWeight: 500}}>{menu.lunch || 'Not set'}</div>
+              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '12px', borderTop: '4px solid #3b82f6', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'}}>
+                <div style={{fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Lunch</div>
+                <div style={{fontSize: '1rem', fontWeight: 600, marginTop: '0.5rem', color: 'var(--text-primary)'}}>{menu.lunch || '-'}</div>
               </div>
-              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '8px', borderTop: '4px solid #8b5cf6', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'}}>
-                <div style={{fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase'}}>Tea Time</div>
-                <div style={{fontSize: '1rem', marginTop: '0.5rem', fontWeight: 500}}>{menu.tea || 'Not set'}</div>
+              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '12px', borderTop: '4px solid #8b5cf6', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'}}>
+                <div style={{fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Tea Time</div>
+                <div style={{fontSize: '1rem', fontWeight: 600, marginTop: '0.5rem', color: 'var(--text-primary)'}}>{menu.tea || '-'}</div>
               </div>
-              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '8px', borderTop: '4px solid #10b981', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'}}>
-                <div style={{fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase'}}>Dinner</div>
-                <div style={{fontSize: '1rem', marginTop: '0.5rem', fontWeight: 500}}>{menu.dinner || 'Not set'}</div>
+              <div style={{padding: '1rem', background: 'var(--bg-main)', borderRadius: '12px', borderTop: '4px solid #10b981', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'}}>
+                <div style={{fontWeight: 700, color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Dinner</div>
+                <div style={{fontSize: '1rem', fontWeight: 600, marginTop: '0.5rem', color: 'var(--text-primary)'}}>{menu.dinner || '-'}</div>
               </div>
             </div>
           ) : <p>Loading menu...</p>}
